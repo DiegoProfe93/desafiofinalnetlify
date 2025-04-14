@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PostCard from "./Postcard";
 import { Container, Row, Col, Alert, Spinner } from 'react-bootstrap';
-import { getAllPosts } from '../api/posts';
+import { getAllPosts } from '../api/post';
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
