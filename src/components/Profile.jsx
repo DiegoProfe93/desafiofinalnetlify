@@ -1,89 +1,129 @@
-import React from 'react';
-import { Container, Row, Col, Card, ListGroup, Button, Tab, Nav } from 'react-bootstrap';
+import React, { useState, useEffect, useContext } from 'react';
+import { Container, Row, Col, Card, ListGroup, Button, Alert } from 'react-bootstrap';
+import { AuthContext } from '../context/AuthContext';
+import { getProfile } from '../api/auth';
+import { getAllPosts } from '../api/post';
+import PostCard from './PostCard';
 
 export default function Profile() {
-  // ejemplo
-  const userData = {
-    name: "Fugu",
-    email: "fugu@fugumarket.com",
-    joined: "17 de Marzo 2025",
-    posts: [
-      { id: 1, title: "MODEL KIT ENTRY GRADE SUPER SAIYAN GOD VEGETA", price: 15990, status: "active" },
-      { id: 2, title: "POKEMON MODEL KIT QUICK BULBASAUR", price: 9990, status: "active" },
-    ]
-  };
+  const { user, token } = useContext(AuthContext);
+  const [profile, setProfile] = useState(null);
+  const [userPosts, setUserPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        const profileData = await getProfile(token);
+        setProfile(profileData);
+        
+        const posts = await getAllPosts();
+        if (posts && Array.isArray(posts)) {
+          const filteredPosts = posts.filter(post => 
+            post.userId === profileData.id || post.sellerId === profileData.id
+          );
+          setUserPosts(filteredPosts);
+        }
+      } catch (err) {
+        console.error('Error fetching profile data:', err);
+        setError('Error al cargar los datos del perfil. Por favor, intente de nuevo.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token) {
+      fetchUserData();
+    }
+  }, [token]);
+
+  if (loading) {
+    return (
+      <Container className="mt-5 text-center">
+        <div className="spinner-border" role="status">
+          <span className="visually-hidden">Cargando...</span>
+        </div>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="mt-5">
+        <Alert variant="danger">
+          {error}
+        </Alert>
+      </Container>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <Container className="mt-5">
+        <Alert variant="warning">
+          No se pudo cargar el perfil. Por favor, inicie sesión nuevamente.
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container className="mt-5">
       <Row>
-        <Col lg={4} className="mb-4">
+        <Col md={4}>
           <Card>
+            <Card.Header as="h5">Mi Perfil</Card.Header>
             <Card.Body className="text-center">
               <div className="mb-3">
                 <img
-                  src="https://img.freepik.com/premium-vector/cute-fugu-puffer-fish-cartoon-character-premium-vector-graphics-stickers-style_324746-1016.jpg"
-                  alt="Foto de perfil"
+                  src={profile.avatar || "https://via.placeholder.com/150"}
+                  alt="Profile"
                   className="rounded-circle"
-                  width="150"
-                  height="150"
+                  style={{ width: '150px', height: '150px' }}
                 />
               </div>
-              <Card.Title as="h4">{userData.name}</Card.Title>
-              <Card.Subtitle className="mb-2 text-muted">
-                Miembro desde {userData.joined}
-              </Card.Subtitle>
-              <Button variant="outline-primary" className="mt-3">
-                Editar Perfil
-              </Button>
+              <Card.Title>{profile.name || profile.username}</Card.Title>
+              <Card.Text>{profile.email}</Card.Text>
             </Card.Body>
             <ListGroup className="list-group-flush">
-              <ListGroup.Item>
-                <strong>Email:</strong> {userData.email}
-              </ListGroup.Item>
-              <ListGroup.Item>
-                <strong>Productos publicados:</strong> {userData.posts.length}
-              </ListGroup.Item>
+              <ListGroup.Item><strong>Usuario desde:</strong> {new Date(profile.createdAt).toLocaleDateString()}</ListGroup.Item>
+              <ListGroup.Item><strong>Productos publicados:</strong> {userPosts.length}</ListGroup.Item>
             </ListGroup>
+            <Card.Body>
+              <div className="d-grid gap-2">
+                <Button variant="outline-primary">Editar Perfil</Button>
+              </div>
+            </Card.Body>
           </Card>
         </Col>
-        
-        <Col lg={8}>
-          <Tab.Container id="profile-tabs" defaultActiveKey="posts">
-            <Card>
-              <Card.Header>
-                <Nav variant="tabs">
-                  <Nav.Item>
-                    <Nav.Link eventKey="posts">Mis Anuncios</Nav.Link>
-                  </Nav.Item>
-                </Nav>
-              </Card.Header>
-              <Card.Body>
-                <Tab.Content>
-                  <Tab.Pane eventKey="posts">
-                    <h5 className="mb-3">Tus Anuncios Publicados</h5>
-                    <ListGroup>
-                      {userData.posts.map(post => (
-                        <ListGroup.Item key={post.id} className="d-flex justify-content-between align-items-center">
-                          <div>
-                            <strong>{post.title}</strong>
-                            <p className="mb-0">${post.price}</p>
-                          </div>
-                          <div>
-                            <Button variant="outline-primary" size="sm" className="me-2">
-                              Editar
-                            </Button>
-                            <Button variant="outline-danger" size="sm">
-                              Eliminar
-                            </Button>
-                          </div>
-                        </ListGroup.Item>
-                      ))}
-                    </ListGroup>
-                  </Tab.Pane>
-                </Tab.Content>
-              </Card.Body>
-            </Card>
-          </Tab.Container>
+        <Col md={8}>
+          <Card>
+            <Card.Header as="h5">Mis Publicaciones</Card.Header>
+            <Card.Body>
+              {userPosts.length === 0 ? (
+                <div className="text-center p-5">
+                  <p>No has publicado ningún producto</p>
+                  <Button variant="primary" href="/create">Crear mi primera publicación</Button>
+                </div>
+              ) : (
+                <Row xs={1} md={2} className="g-4">
+                  {userPosts.map(post => (
+                    <Col key={post.id}>
+                      <PostCard
+                        id={post.id}
+                        title={post.title}
+                        description={post.description}
+                        price={post.price}
+                        image={post.image}
+                      />
+                    </Col>
+                  ))}
+                </Row>
+              )}
+            </Card.Body>
+          </Card>
         </Col>
       </Row>
     </Container>
