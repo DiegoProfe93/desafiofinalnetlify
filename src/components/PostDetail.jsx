@@ -1,26 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Row, Col, Card, Button, ListGroup } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, ListGroup, Alert } from 'react-bootstrap';
+import { getPostById } from '../api/post';
 
 export default function PostDetail() {
   const { id } = useParams();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Ejemplo
-    setTimeout(() => {
-      setPost({
-        id: Number(id),
-        title: `Producto ${id}`,
-        description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla quam velit, vulputate eu pharetra nec, mattis ac neque.",
-        price: 100 * Number(id),
-        image: "https://dojiw2m9tvv09.cloudfront.net/68889/product/bulbasaur9210.png",
-        seller: "Fugu",
-        date: "17/03/2025"
-      });
-      setLoading(false);
-    }, 500);
+    const fetchPostData = async () => {
+      try {
+        setLoading(true);
+        const data = await getPostById(id);
+        if (data) {
+          setPost(data);
+        } else {
+          setError('No se pudo cargar la publicación');
+        }
+      } catch (err) {
+        console.error('Error fetching post:', err);
+        setError('Error al cargar la publicación. Por favor, intente de nuevo.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPostData();
   }, [id]);
 
   if (loading) {
@@ -29,6 +36,26 @@ export default function PostDetail() {
         <div className="spinner-border" role="status">
           <span className="visually-hidden">Cargando...</span>
         </div>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container className="mt-5">
+        <Alert variant="danger">
+          {error}
+        </Alert>
+      </Container>
+    );
+  }
+
+  if (!post) {
+    return (
+      <Container className="mt-5">
+        <Alert variant="warning">
+          Publicación no encontrada
+        </Alert>
       </Container>
     );
   }
@@ -48,7 +75,7 @@ export default function PostDetail() {
             <Card.Body>
               <Card.Title as="h2">{post.title}</Card.Title>
               <Card.Subtitle className="mb-3 text-muted">
-                Publicado por: {post.seller} el {post.date}
+                Publicado por: {post.seller?.name || 'Usuario'} el {new Date(post.createdAt).toLocaleDateString()}
               </Card.Subtitle>
               <Card.Text>{post.description}</Card.Text>
               
@@ -65,7 +92,7 @@ export default function PostDetail() {
               
               <div className="d-grid gap-2">
                 <Button variant="success" size="lg">
-                  Comprar
+                  Contactar vendedor
                 </Button>
               </div>
             </Card.Body>
