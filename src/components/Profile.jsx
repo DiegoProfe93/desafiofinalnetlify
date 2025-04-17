@@ -3,7 +3,7 @@ import { Container, Row, Col, Card, ListGroup, Button, Alert } from 'react-boots
 import { AuthContext } from '../context/AuthContext';
 import { getProfile } from '../api/auth';
 import { getAllPosts } from '../api/post';
-import PostCard from './PostCard';
+import PostCard from './Postcard';
 
 export default function Profile() {
   const { user, token } = useContext(AuthContext);
