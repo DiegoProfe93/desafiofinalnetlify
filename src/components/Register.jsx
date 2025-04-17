@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { Form, Button, Container, Row, Col, Card } from 'react-bootstrap';
+import { Form, Button, Container, Row, Col, Card, Alert } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
+import { registerUser } from '../api/auth';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -8,6 +10,10 @@ export default function Register() {
     password: '',
     confirmPassword: ''
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -17,9 +23,39 @@ export default function Register() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Las contraseñas no coinciden');
+      return;
+    }
+    
+    setError('');
+    setLoading(true);
+    
+    try {
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password
+      };
+      
+      const response = await registerUser(userData);
+      
+      if (response.id) {
+        setSuccess('Registro exitoso. Redirigiendo al login...');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else if (response.message) {
+        setError(response.message);
+      }
+    } catch (error) {
+      setError('Error al conectar con el servidor');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -29,6 +65,8 @@ export default function Register() {
           <Card>
             <Card.Header as="h4" className="text-center">Registro</Card.Header>
             <Card.Body>
+              {error && <Alert variant="danger">{error}</Alert>}
+              {success && <Alert variant="success">{success}</Alert>}
               <Form onSubmit={handleSubmit}>
                 <Form.Group className="mb-3" controlId="formName">
                   <Form.Label>Nombre</Form.Label>
@@ -79,8 +117,8 @@ export default function Register() {
                 </Form.Group>
                 
                 <div className="d-grid gap-2">
-                  <Button variant="primary" type="submit">
-                    Registrarse
+                  <Button variant="primary" type="submit" disabled={loading}>
+                    {loading ? 'Procesando...' : 'Registrarse'}
                   </Button>
                 </div>
               </Form>
