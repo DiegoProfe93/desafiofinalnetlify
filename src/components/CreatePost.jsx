@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { Form, Button, Container, Row, Col, Card, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
-import { createPost, uploadFile } from '../services/post';
+import { createPost, uploadFile } from '../api/post'; 
 import { AuthContext } from '../context/AuthContext';
 
 export default function CreatePost() {
@@ -47,7 +47,6 @@ export default function CreatePost() {
           throw new Error('Error uploading image');
         }
       }
-
       const finalPostData = {
         ...postData,
         price: Number(postData.price),
