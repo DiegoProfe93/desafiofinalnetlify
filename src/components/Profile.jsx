@@ -197,9 +197,6 @@ export default function Profile() {
             </Card.Body>
             <ListGroup className="list-group-flush">
               <ListGroup.Item>
-                <strong>Usuario desde:</strong> {formatDate(profile.createdAt)}
-              </ListGroup.Item>
-              <ListGroup.Item>
                 <strong>Productos publicados:</strong> {userPosts.length}
               </ListGroup.Item>
             </ListGroup>
@@ -241,85 +238,44 @@ export default function Profile() {
         </Col>
       </Row>
 
-      {/* Edit Profile Modal */}
+      {}
       <Modal show={showEditModal} onHide={handleCloseModal}>
         <Modal.Header closeButton>
           <Modal.Title>Editar Perfil</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {updateError && <Alert variant="danger">{updateError}</Alert>}
-          
-          <Form onSubmit={handleUpdateProfile}>
-            <Form.Group className="mb-3" controlId="formName">
-              <Form.Label>Nombre</Form.Label>
-              <Form.Control
-                type="text"
-                name="name"
-                value={profileForm.name}
-                onChange={handleFormChange}
-                placeholder="Tu nombre"
-              />
-            </Form.Group>
+  {updateError && <Alert variant="danger">{updateError}</Alert>}
 
-            <Form.Group className="mb-3" controlId="formUsername">
-              <Form.Label>Nombre de usuario</Form.Label>
-              <Form.Control
-                type="text"
-                name="username"
-                value={profileForm.username}
-                onChange={handleFormChange}
-                placeholder="Nombre de usuario"
-              />
-            </Form.Group>
+  <Form onSubmit={handleUpdateProfile}>
+    <Form.Group className="mb-3" controlId="formUsername">
+      <Form.Label>Nombre de usuario</Form.Label>
+      <Form.Control
+        type="text"
+        name="username"
+        value={profileForm.username}
+        onChange={handleFormChange}
+        placeholder="Nombre de usuario"
+      />
+    </Form.Group>
 
-            <Form.Group className="mb-3" controlId="formEmail">
-              <Form.Label>Email</Form.Label>
-              <Form.Control
-                type="email"
-                name="email"
-                value={profileForm.email}
-                onChange={handleFormChange}
-                placeholder="Tu email"
-                disabled
-              />
-              <Form.Text className="text-muted">
-                El email no se puede cambiar
-              </Form.Text>
-            </Form.Group>
+    <Form.Group className="mb-3" controlId="formAvatarUrl">
+      <Form.Label>URL de imagen de perfil</Form.Label>
+      <Form.Control
+        type="text"
+        name="avatar"
+        value={profileForm.avatar}
+        onChange={handleFormChange}
+        placeholder="URL de tu imagen de perfil"
+      />
+    </Form.Group>
 
-            <Form.Group className="mb-3" controlId="formAvatar">
-              <Form.Label>Imagen de perfil</Form.Label>
-              <Form.Control
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-              />
-              <Form.Text className="text-muted">
-                Sube una nueva imagen de perfil o deja vacío para mantener la actual
-              </Form.Text>
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="formAvatarUrl">
-              <Form.Label>URL de imagen de perfil (opcional)</Form.Label>
-              <Form.Control
-                type="text"
-                name="avatar"
-                value={profileForm.avatar}
-                onChange={handleFormChange}
-                placeholder="URL de tu imagen de perfil"
-              />
-              <Form.Text className="text-muted">
-                URL de imagen
-              </Form.Text>
-            </Form.Group>
-
-            <div className="d-grid gap-2">
-              <Button variant="primary" type="submit" disabled={updating}>
-                {updating ? 'Actualizando...' : 'Guardar Cambios'}
-              </Button>
-            </div>
-          </Form>
-        </Modal.Body>
+    <div className="d-grid gap-2">
+      <Button variant="primary" type="submit" disabled={updating}>
+        {updating ? 'Actualizando...' : 'Guardar Cambios'}
+      </Button>
+    </div>
+  </Form>
+</Modal.Body>
       </Modal>
     </Container>
   );
